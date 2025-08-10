@@ -50,8 +50,8 @@
 </head>
 <body>
 
-  <h1>AI-Based Anemia Detection</h1>
-  <p>Upload or capture an eye image to detect anemia</p>
+  <h1>Anemia Detection</h1>
+  <p>Upload or capture an eye image to check for anemia</p>
 
   <label for="imageInput">📤 Upload or Take Image</label>
   <input type="file" accept="image/*" capture="environment" id="imageInput"/>
@@ -60,7 +60,7 @@
   <img id="preview" src="#" alt="Image Preview" />
   <br />
 
-  <button onclick="detectAnemia()">Detect Anemia</button>
+  <button onclick="detectAnemia()">Check</button>
 
   <div id="result"></div>
 
@@ -91,7 +91,7 @@
       const formData = new FormData();
       formData.append("image", file);
 
-      resultDiv.textContent = "Detecting anemia...";
+      resultDiv.textContent = "Checking...";
       resultDiv.style.color = "#333";
 
       fetch("http://localhost:5000/predict", {
@@ -111,7 +111,7 @@
       })
       .catch(err => {
         console.error(err);
-        resultDiv.textContent = "Error detecting anemia.";
+        resultDiv.textContent = "Error during detection.";
         resultDiv.style.color = "#ef4444";
       });
     }
