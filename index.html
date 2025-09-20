@@ -1,121 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Anemia Detection</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sri Mittapalli College of Engineering</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
+    * {box-sizing: border-box; margin: 0; padding: 0;}
     body {
-      font-family: sans-serif;
-      background: #f0f4f8;
-      padding: 30px;
-      text-align: center;
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      /* background image */
+      background: url('college-building.jpg') no-repeat center center/cover;
+      position: relative;
     }
+    /* dark overlay for readability */
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 0;
+    }
+
     h1 {
-      color: #e11d48;
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      color: #fff;
+      font-size: 2.2rem;
+      margin-bottom: 40px;
+      opacity: 0;
+      animation: fadeDown 1s ease forwards, glow 2s ease-in-out infinite alternate;
     }
-    #preview {
-      max-width: 300px;
-      margin-top: 20px;
-      display: none;
-      border: 3px solid #ddd;
-      border-radius: 10px;
+
+    .container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      gap: 30px;
+      flex-wrap: wrap;
+      justify-content: center;
     }
-    button {
-      margin: 10px;
-      padding: 10px 20px;
-      background: #e11d48;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
+
+    .card {
+      background: rgba(255,255,255,0.9);
+      width: 250px;
+      height: 260px;
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      text-align: center;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      text-decoration: none;
+      color: #333;
+      font-weight: 600;
+      font-size: 1.2rem;
+      padding-top: 20px;
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      animation: fadeUp 1.2s ease forwards;
+      opacity: 0;
     }
-    #result {
-      margin-top: 30px;
-      font-size: 20px;
-      font-weight: bold;
+    .card:nth-child(1) {animation-delay: 0.3s;}
+    .card:nth-child(2) {animation-delay: 0.5s;}
+    .card:hover {
+      transform: translateY(-10px) scale(1.05);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.3);
     }
-    input[type="file"] {
-      display: none;
+
+    .logo {
+      width: 100px;
+      height: 100px;
+      margin-bottom: 15px;
+      object-fit: cover;
+      border-radius: 50%;
     }
-    label {
-      background: #3b82f6;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
+
+    /* Animations */
+    @keyframes fadeDown {
+      0% {transform: translateY(-30px); opacity: 0;}
+      100% {transform: translateY(0); opacity: 1;}
+    }
+    @keyframes fadeUp {
+      0% {transform: translateY(30px); opacity: 0;}
+      100% {transform: translateY(0); opacity: 1;}
+    }
+    @keyframes glow {
+      0% {text-shadow: 0 0 5px #fff, 0 0 10px #06b6d4, 0 0 15px #06b6d4;}
+      100% {text-shadow: 0 0 15px #fff, 0 0 20px #4f46e5, 0 0 30px #4f46e5;}
     }
   </style>
 </head>
 <body>
-
-  <h1>Anemia Detection</h1>
-  <p>Upload or capture an eye image to check for anemia</p>
-
-  <label for="imageInput">📤 Upload or Take Image</label>
-  <input type="file" accept="image/*" capture="environment" id="imageInput"/>
-
-  <br />
-  <img id="preview" src="#" alt="Image Preview" />
-  <br />
-
-  <button onclick="detectAnemia()">Check</button>
-
-  <div id="result"></div>
-
-  <script>
-    const imageInput = document.getElementById('imageInput');
-    const preview = document.getElementById('preview');
-    const resultDiv = document.getElementById('result');
-
-    imageInput.onchange = function (e) {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          preview.src = e.target.result;
-          preview.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-      }
-    };
-
-    function detectAnemia() {
-      const file = imageInput.files[0];
-      if (!file) {
-        alert('Please upload or take a photo first.');
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append("image", file);
-
-      resultDiv.textContent = "Checking...";
-      resultDiv.style.color = "#333";
-
-      fetch("http://localhost:5000/predict", {
-        method: "POST",
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.result.toLowerCase().includes("anemia")) {
-          resultDiv.innerHTML = `
-            <span style="color:#e11d48;">Anemia Detected</span><br/>
-            <p><strong>Details:</strong><br/>${data.details || "Please consult a doctor for confirmation."}</p>
-          `;
-        } else {
-          resultDiv.innerHTML = `<span style="color:green;">No Anemia Detected</span>`;
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        resultDiv.textContent = "Error during detection.";
-        resultDiv.style.color = "#ef4444";
-      });
-    }
-  </script>
-
+  <h1>Welcome to Sri Mittapalli College of Engineering</h1>
+  <div class="container">
+    <a href="student.html" class="card">
+      <img src="https://cdn-icons-png.flaticon.com/512/3135/3135755.png" alt="Student Logo" class="logo">
+      Student
+    </a>
+    <a href="faculty.html" class="card">
+      <img src="https://cdn-icons-png.flaticon.com/512/3135/3135815.png" alt="Faculty Logo" class="logo">
+      Faculty
+    </a>
+  </div>
 </body>
 </html>
