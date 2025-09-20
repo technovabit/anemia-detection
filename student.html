@@ -22,6 +22,7 @@ input{padding:10px;border-radius:6px;border:1px solid #ccc;width:100%;margin-bot
 .login-container{display:flex;justify-content:center;align-items:center;height:calc(100vh - 64px);}
 .login-box{background:#fff;padding:32px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.2);max-width:400px;width:90%;}
 footer{padding:20px;text-align:center;color:#555;}
+ul{list-style:disc inside;}
 </style>
 </head>
 <body>
@@ -81,9 +82,13 @@ if(!localStorage.getItem('students')){
 if(!localStorage.getItem('timetableData')) localStorage.setItem('timetableData', JSON.stringify([
   {period:1,subject:'Mathematics',start:'09:00',end:'09:45'},
   {period:2,subject:'Science',start:'09:50',end:'10:35'},
-  {period:3,subject:'English',start:'10:40',end:'11:25'}
+  {period:3,subject:'English',start:'10:40',end:'11:25'},
+  {period:4,subject:'History',start:'11:30',end:'12:15'}
 ]));
-if(!localStorage.getItem('activities')) localStorage.setItem('activities', JSON.stringify(['Math Quiz','Science Project']));
+if(!localStorage.getItem('activities')) localStorage.setItem('activities', JSON.stringify([
+  {name:'Math Quiz', date:'2025-09-20'},
+  {name:'Science Project', date:'2025-09-21'}
+]));
 
 let currentStudent='';
 
@@ -124,12 +129,17 @@ function renderTimetable(){
   document.getElementById('tt-card').innerHTML=html;
 }
 
-// --- Activities ---
+// --- Activities (dynamic from faculty) ---
 function renderActivities(){
   const acts=JSON.parse(localStorage.getItem('activities')||'[]');
   const ul=document.getElementById('activities-list');
   ul.innerHTML='';
-  acts.forEach(a=>{const li=document.createElement('li');li.innerText=a;ul.appendChild(li);});
+  if(acts.length===0){ul.innerHTML='<li>No activities assigned yet</li>'; return;}
+  acts.forEach(a=>{
+    const li=document.createElement('li');
+    li.innerText=a.date ? `${a.name} (${a.date})` : a.name;
+    ul.appendChild(li);
+  });
 }
 
 // --- Attendance ---
@@ -155,7 +165,6 @@ function renderAttendance(){
     ctx.fillStyle='#333';
     ctx.font='12px sans-serif';
     ctx.fillText(dates[i],x,canvas.height-8);
-    ctx.fillText(v,y-6,y-6);
   });
 
   // Table
@@ -169,8 +178,13 @@ function renderAttendance(){
   });
 }
 
-// Refresh attendance periodically (if faculty updates)
-setInterval(()=>{if(currentStudent) renderAttendance();},5000);
+// Refresh attendance and activities periodically (if faculty updates)
+setInterval(()=>{
+  if(currentStudent){
+    renderAttendance();
+    renderActivities(); // keep activities synced
+  }
+},5000);
 
 </script>
 
