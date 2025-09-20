@@ -163,7 +163,7 @@ function initApp(){
   if(!localStorage.getItem('timetableData')) localStorage.setItem('timetableData', JSON.stringify([
     {period:1,subject:'Math',start:'09:00',end:'09:45'},
     {period:2,subject:'Science',start:'09:50',end:'10:35'},
-    {period:3,subject:'English',start:'10:40',end:'11:25'}
+    {period:3,subject:'English',start:'10:40',end:'11:25'},
   ]));
   if(!localStorage.getItem('attendanceRecords')) localStorage.setItem('attendanceRecords', JSON.stringify({}));
   renderCalendar();
@@ -206,6 +206,7 @@ function removeStudent(i){
   const students=JSON.parse(localStorage.getItem('students')||'[]');
   students.splice(i,1);
   localStorage.setItem('students', JSON.stringify(students));
+  refreshStudentManage();
   renderAttendanceTable();
 }
 
@@ -253,6 +254,17 @@ function renderTodayTimetable(){
     </tr>`;
   });
   html+='</tbody></table>';
+  // Add new period form
+  html+=`
+    <div style="margin-top:15px;">
+      <h4>Add New Period</h4>
+      <input type="number" id="newPeriodNum" placeholder="Period number" style="width:90px;">
+      <input type="text" id="newPeriodSub" placeholder="Subject">
+      <input type="time" id="newPeriodStart">
+      <input type="time" id="newPeriodEnd">
+      <button class="btn" onclick="addPeriod()">Add Period</button>
+    </div>
+  `;
   container.innerHTML=html;
 }
 
@@ -263,6 +275,19 @@ function updatePeriod(i){
   data[i].end=document.getElementById(`end-${i}`).value;
   localStorage.setItem('timetableData', JSON.stringify(data));
   alert('Updated successfully!');
+  renderTodayTimetable();
+}
+
+function addPeriod(){
+  const period=document.getElementById('newPeriodNum').value;
+  const subject=document.getElementById('newPeriodSub').value;
+  const start=document.getElementById('newPeriodStart').value;
+  const end=document.getElementById('newPeriodEnd').value;
+  if(!period || !subject || !start || !end) return alert('Fill all fields');
+  const data=JSON.parse(localStorage.getItem('timetableData')||'[]');
+  data.push({period:parseInt(period),subject,start,end});
+  data.sort((a,b)=>a.period-b.period); // keep in order
+  localStorage.setItem('timetableData', JSON.stringify(data));
   renderTodayTimetable();
 }
 
@@ -279,6 +304,9 @@ function openModal(type){
   } else if(type==='studentAnalysis'){
     title.innerText='Student Attendance Analysis';
     renderAttendanceAnalysis(body);
+  } else if(type==='timetable'){
+    title.innerText="Today's Timetable";
+    body.appendChild(document.getElementById('tt-card').cloneNode(true));
   } else {
     title.innerText=type;
     body.innerHTML=`<p>${type} content goes here</p>`;
@@ -329,7 +357,6 @@ function captureFrameSmart(){
   const img=document.createElement('img'); img.src=data; img.style.width='100%'; img.style.cursor='pointer';
   document.getElementById('captures').appendChild(img);
 
-  // **Mark all students as present** for demo (in real app, use face/eye recognition)
   const students=JSON.parse(localStorage.getItem('students')||'[]');
   const records=JSON.parse(localStorage.getItem('attendanceRecords')||'{}');
   if(!records[selectedDate]) records[selectedDate]={};
