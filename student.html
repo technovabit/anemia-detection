@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Smart Curriculum & Attendance — Student</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;color:#222;line-height:1.6}
+header{background:#1e3a8a;color:#fff;padding:16px 24px;display:flex;justify-content:center;align-items:center;position:sticky;top:0;z-index:1000}
+header h1{font-size:1.25rem}
+section{padding:40px 16px;max-width:1100px;margin:auto;display:none}
+h2{text-align:center;margin-bottom:28px;color:#1e3a8a}
+.card{background:#fff;padding:18px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.08);transition:.2s}
+.card:hover{transform:translateY(-4px)}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{border:1px solid #ddd;padding:8px;text-align:left}
+canvas{max-width:100%;height:200px}
+input{padding:10px;border-radius:6px;border:1px solid #ccc;width:100%;margin-bottom:12px}
+.btn{background:#ffd700;color:#000;padding:10px 14px;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:.2s;width:100%}
+.btn:hover{background:#facc15}
+.login-container{display:flex;justify-content:center;align-items:center;height:calc(100vh - 64px);}
+.login-box{background:#fff;padding:32px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.2);max-width:400px;width:90%;}
+footer{padding:20px;text-align:center;color:#555;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Smart Curriculum & Attendance</h1>
+</header>
+
+<!-- Full-page Login -->
+<div class="login-container" id="loginPage">
+  <div class="login-box">
+    <h2 style="text-align:center;margin-bottom:20px;">Student Login</h2>
+    <input id="loginUser" type="text" placeholder="Username"/>
+    <input id="loginPass" type="password" placeholder="Password"/>
+    <button class="btn" onclick="submitLogin()">Login</button>
+    <p style="margin-top:12px;color:#555;text-align:center;font-size:0.9rem;">Ask your faculty for credentials</p>
+  </div>
+</div>
+
+<section id="timetable">
+  <h2>Your Timetable</h2>
+  <div class="card" id="tt-card"></div>
+</section>
+
+<section id="attendance">
+  <h2>Your Attendance</h2>
+  <div class="card">
+    <canvas id="attChart"></canvas>
+    <table id="attTable" style="margin-top:20px">
+      <thead><tr><th>Date</th><th>Status</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="activities">
+  <h2>Your Activities</h2>
+  <div class="card">
+    <ul id="activities-list"></ul>
+  </div>
+</section>
+
+<section id="contact">
+  <h2>Contact Us</h2>
+  <p style="text-align:center;">📧 team@smartapp.com | ☎️ +91 98765 43210</p>
+</section>
+
+<footer>
+  <p>© 2025 Smart Curriculum & Attendance App</p>
+</footer>
+
+<script>
+// --- Ensure demo data exists ---
+if(!localStorage.getItem('students')){
+  localStorage.setItem('students', JSON.stringify([{name:'Demo Student',username:'student',password:'student'}]));
+}
+if(!localStorage.getItem('timetableData')) localStorage.setItem('timetableData', JSON.stringify([
+  {period:1,subject:'Mathematics',start:'09:00',end:'09:45'},
+  {period:2,subject:'Science',start:'09:50',end:'10:35'},
+  {period:3,subject:'English',start:'10:40',end:'11:25'}
+]));
+if(!localStorage.getItem('activities')) localStorage.setItem('activities', JSON.stringify(['Math Quiz','Science Project']));
+
+let currentStudent='';
+
+// --- Login ---
+function submitLogin(){
+  const user=document.getElementById('loginUser').value.trim();
+  const pass=document.getElementById('loginPass').value.trim();
+  const students=JSON.parse(localStorage.getItem('students')||'[]');
+  const found=students.find(s=>s.username===user && s.password===pass);
+  if(found){
+    currentStudent=user;
+    document.getElementById('loginPage').style.display='none';
+    showSections();
+    renderDashboard();
+    return;
+  }
+  alert('Invalid username or password');
+}
+
+// --- Show sections ---
+function showSections(){
+  document.querySelectorAll('section').forEach(sec=>sec.style.display='block');
+}
+
+// --- Dashboard render ---
+function renderDashboard(){
+  renderTimetable();
+  renderActivities();
+  renderAttendance();
+}
+
+// --- Timetable ---
+function renderTimetable(){
+  const data=JSON.parse(localStorage.getItem('timetableData')||'[]');
+  let html='<table><thead><tr><th>Period</th><th>Subject</th><th>Start</th><th>End</th></tr></thead><tbody>';
+  data.forEach(r=>{html+=`<tr><td>${r.period}</td><td>${r.subject}</td><td>${r.start}</td><td>${r.end}</td></tr>`});
+  html+='</tbody></table>';
+  document.getElementById('tt-card').innerHTML=html;
+}
+
+// --- Activities ---
+function renderActivities(){
+  const acts=JSON.parse(localStorage.getItem('activities')||'[]');
+  const ul=document.getElementById('activities-list');
+  ul.innerHTML='';
+  acts.forEach(a=>{const li=document.createElement('li');li.innerText=a;ul.appendChild(li);});
+}
+
+// --- Attendance ---
+function renderAttendance(){
+  const records=JSON.parse(localStorage.getItem('attendanceRecords')||'{}');
+  const canvas=document.getElementById('attChart'); 
+  const ctx=canvas.getContext('2d');
+  const dates=Object.keys(records).sort();
+  const data=dates.map(d=>records[d][currentStudent]==='Present'?1:0);
+
+  // Canvas chart
+  canvas.width=canvas.clientWidth;
+  canvas.height=200;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const padding=30;
+  const w=(canvas.width-2*padding)/dates.length;
+  data.forEach((v,i)=>{
+    const h=((canvas.height-2*padding)*(v/1));
+    const x=padding + i*w + 10;
+    const y=canvas.height - padding - h;
+    ctx.fillStyle='rgba(59,130,246,0.9)';
+    ctx.fillRect(x,y,w-20,h);
+    ctx.fillStyle='#333';
+    ctx.font='12px sans-serif';
+    ctx.fillText(dates[i],x,canvas.height-8);
+    ctx.fillText(v,y-6,y-6);
+  });
+
+  // Table
+  const tbody=document.querySelector('#attTable tbody');
+  tbody.innerHTML='';
+  dates.forEach(d=>{
+    const status=records[d][currentStudent] || 'Absent';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${d}</td><td>${status}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// Refresh attendance periodically (if faculty updates)
+setInterval(()=>{if(currentStudent) renderAttendance();},5000);
+
+</script>
+
+</body>
+</html>

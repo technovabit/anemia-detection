@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Smart Curriculum & Attendance — Full</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;color:#222;line-height:1.6}
+header{background:#1e3a8a;color:#fff;padding:16px 24px;position:sticky;top:0;z-index:1000;text-align:center}
+header h1{font-size:1.5rem}
+.hero{text-align:center;padding:60px 18px;background:linear-gradient(135deg,#1e3a8a,#3b82f6);color:#fff}
+.hero h2{font-size:2rem;margin-bottom:12px}
+.hero p{font-size:1rem;margin-bottom:18px}
+.btn{background:#ffd700;color:#000;padding:8px 14px;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:.2s}
+.btn:hover{background:#facc15}
+section{padding:40px 16px;max-width:1100px;margin:auto;display:none}
+h2{text-align:center;margin-bottom:28px;color:#1e3a8a}
+.features,.arch-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+.card,.arch-card{background:#fff;padding:18px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.08);transition:.2s}
+.card:hover,.arch-card:hover{transform:translateY(-4px)}
+.card h3{margin-bottom:8px;color:#3b82f6}
+.arch-card h3{margin-bottom:8px}
+.arch-content{display:none;margin-top:10px}
+.arch-content p{margin:8px 0}
+footer{background:#1e293b;color:#fff;padding:16px;text-align:center;margin-top:30px}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{border:1px solid #ddd;padding:8px;text-align:left}
+input[type="text"],input[type="password"],input[type="time"],select{width:95%;padding:6px;border:1px solid #aaa;border-radius:6px;margin-bottom:8px}
+.small{font-size:.9rem}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.hidden{display:none}
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+canvas{max-width:100%;height:200px}
+#loginPage{position:fixed;top:0;left:0;width:100%;height:100%;background:#f5f7fa;display:flex;justify-content:center;align-items:center;z-index:9999}
+.login-box{background:#fff;padding:32px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.2);max-width:400px;width:90%}
+#modal{display:none;position:fixed;z-index:2000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,.6);justify-content:center;align-items:center}
+.modal-content{background:#fff;padding:20px;border-radius:12px;max-width:900px;width:96%;text-align:left;position:relative;overflow:auto;max-height:90%}
+.close{position:absolute;top:10px;right:15px;font-size:22px;cursor:pointer;color:#333}
+.calendar{display:flex;justify-content:center;margin-bottom:10px;gap:8px;flex-wrap:wrap}
+.calendar button{padding:6px 12px;border-radius:6px;border:1px solid #aaa;cursor:pointer;background:#fff;transition:.2s}
+.calendar button:hover{background:#facc15}
+.selected-day{background:#3b82f6;color:#fff}
+.att-btns button{margin-right:6px}
+.selected{border:2px solid green;}
+@media(max-width:680px){.grid-2{grid-template-columns:1fr}.hero{padding:40px 12px}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Smart Curriculum & Attendance</h1>
+</header>
+
+<!-- Faculty Login Page -->
+<div id="loginPage">
+  <div class="login-box">
+    <h2 style="text-align:center;margin-bottom:20px;">Faculty Login</h2>
+    <input id="loginUser" type="text" placeholder="Username"/>
+    <input id="loginPass" type="password" placeholder="Password"/>
+    <button class="btn" onclick="submitLogin()">Login</button>
+    <p style="margin-top:12px;color:#555;text-align:center;font-size:0.9rem;">Username: faculty | Password: 123</p>
+  </div>
+</div>
+
+<div class="hero">
+  <h2>Smart Curriculum & Attendance System</h2>
+  <p>Track attendance, manage curriculum, and analyze activities with ease.</p>
+  <button class="btn" onclick="openModal('timetable')">Check / Edit Today's Timetable</button>
+</div>
+
+<section id="features">
+  <h2>Key Features</h2>
+  <div class="features">
+    <div class="card"><h3>📋 Easy Attendance</h3><p>Digital attendance marking with instant reports and export.</p></div>
+    <div class="card"><h3>📅 Curriculum Planner</h3><p>Organize schedules, classes and let faculty manage timetables.</p></div>
+    <div class="card"><h3>📊 Analytics Dashboard</h3><p>Monthly & weekly attendance summaries and simple charts.</p></div>
+    <div class="card"><h3>🎯 Activity Scheduling</h3><p>Student lists, activity assignments and management tools.</p></div>
+  </div>
+</section>
+
+<section id="timetable">
+  <h2>Today's Timetable</h2>
+  <div class="card" id="tt-card"></div>
+</section>
+
+<section id="studentManagement">
+  <h2>Student Management & Login</h2>
+  <div class="card">
+    <div class="grid-2">
+      <div>
+        <h3>Add New Student</h3>
+        <input type="text" id="newStudentName" placeholder="Student name..." />
+        <input type="text" id="newStudentUser" placeholder="Username" />
+        <input type="password" id="newStudentPass" placeholder="Password" />
+        <button class="btn" onclick="addStudentWithLogin()">Add Student</button>
+      </div>
+      <div>
+        <h3>Manage Students</h3>
+        <table id="students-manage">
+          <thead><tr><th>Name</th><th>Username</th><th>Password</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="attendance">
+  <h2>Mark Attendance</h2>
+  <div class="calendar" id="calendarDays"></div>
+  <div class="toolbar">
+    <button class="btn" onclick="openModal('markAttendance')">Mark Attendance</button>
+    <button class="btn" onclick="openModal('studentAnalysis')">Student Analysis</button>
+    <button class="btn" onclick="openModal('smartAttendance')">Smart Attendance (Camera)</button>
+  </div>
+  <div id="attendance-table" class="card">
+    <table>
+      <thead><tr><th>Student</th><th>Actions</th></tr></thead>
+      <tbody id="students-body"></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="contact">
+  <h2>Contact Us</h2>
+  <p style="text-align:center;">📧 team@smartapp.com | ☎️ +91 98765 43210</p>
+</section>
+
+<footer>
+  <p>© 2025 Smart Curriculum & Attendance App</p>
+</footer>
+
+<!-- Generic Modal -->
+<div id="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <h3 id="modal-title"></h3>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+let loggedIn=false;
+let cameraStream=null;
+let selectedDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+// Faculty Login
+function submitLogin(){
+  const user=document.getElementById('loginUser').value.trim();
+  const pass=document.getElementById('loginPass').value.trim();
+  if(user==='faculty' && pass==='123'){
+    loggedIn=true;
+    document.getElementById('loginPage').style.display='none';
+    document.querySelectorAll('section').forEach(s=>s.style.display='block');
+    initApp();
+  } else alert('Invalid credentials!');
+}
+
+// App initialization
+function initApp(){
+  if(!localStorage.getItem('students')) localStorage.setItem('students', JSON.stringify([]));
+  if(!localStorage.getItem('timetableData')) localStorage.setItem('timetableData', JSON.stringify([
+    {period:1,subject:'Math',start:'09:00',end:'09:45'},
+    {period:2,subject:'Science',start:'09:50',end:'10:35'},
+    {period:3,subject:'English',start:'10:40',end:'11:25'}
+  ]));
+  if(!localStorage.getItem('attendanceRecords')) localStorage.setItem('attendanceRecords', JSON.stringify({}));
+  renderCalendar();
+  refreshStudentManage();
+  renderAttendanceTable();
+  renderTodayTimetable();
+}
+
+// Students Management
+function refreshStudentManage(){
+  const tbody=document.querySelector('#students-manage tbody');
+  const students=JSON.parse(localStorage.getItem('students')||'[]');
+  tbody.innerHTML='';
+  students.forEach((s,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${s.name}</td><td>${s.username}</td><td>${s.password}</td>
+    <td><button class="btn" onclick="removeStudent(${i})">Remove</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function addStudentWithLogin(){
+  if(!loggedIn) return alert('Please login first');
+  const name=document.getElementById('newStudentName').value.trim();
+  const user=document.getElementById('newStudentUser').value.trim();
+  const pass=document.getElementById('newStudentPass').value.trim();
+  if(!name || !user || !pass) return alert('Fill all fields');
+  const students=JSON.parse(localStorage.getItem('students')||'[]');
+  students.push({name,username:user,password:pass});
+  localStorage.setItem('students', JSON.stringify(students));
+  document.getElementById('newStudentName').value='';
+  document.getElementById('newStudentUser').value='';
+  document.getElementById('newStudentPass').value='';
+  refreshStudentManage();
+  renderAttendanceTable();
+}
+
+function removeStudent(i){
+  if(!loggedIn) return alert('Please login first');
+  const students=JSON.parse(localStorage.getItem('students')||'[]');
+  students.splice(i,1);
+  localStorage.setItem('students', JSON.stringify(students));
+  renderAttendanceTable();
+}
+
+// Attendance Table with Present/Absent buttons
+function renderAttendanceTable(){
+  const tb=document.getElementById('students-body');
+  const students=JSON.parse(localStorage.getItem('students')||'[]');
+  const records=JSON.parse(localStorage.getItem('attendanceRecords')||'{}');
+  tb.innerHTML='';
+  students.forEach((s)=>{
+    const tr=document.createElement('tr');
+    const dayRec = records[selectedDate] || {};
+    const status = dayRec[s.username] || '';
+    tr.innerHTML=`
+      <td>${s.name}</td>
+      <td class="att-btns">
+        <button class="btn ${status==='Present'?'selected':''}" onclick="markAttendance('${s.username}','Present',this)">Present</button>
+        <button class="btn ${status==='Absent'?'selected':''}" onclick="markAttendance('${s.username}','Absent',this)">Absent</button>
+      </td>
+    `;
+    tb.appendChild(tr);
+  });
+}
+
+function markAttendance(username,status,btn){
+  const records=JSON.parse(localStorage.getItem('attendanceRecords')||'{}');
+  if(!records[selectedDate]) records[selectedDate]={};
+  records[selectedDate][username]=status;
+  localStorage.setItem('attendanceRecords', JSON.stringify(records));
+  renderAttendanceTable();
+}
+
+// Timetable
+function renderTodayTimetable(){
+  const container=document.getElementById('tt-card');
+  const data=JSON.parse(localStorage.getItem('timetableData')||'[]');
+  let html='<table><thead><tr><th>Period</th><th>Subject</th><th>Start</th><th>End</th><th>Action</th></tr></thead><tbody>';
+  data.forEach((r,i)=>{
+    html+=`<tr>
+      <td>${r.period}</td>
+      <td><input type="text" value="${r.subject}" id="sub-${i}"></td>
+      <td><input type="time" value="${r.start}" id="start-${i}"></td>
+      <td><input type="time" value="${r.end}" id="end-${i}"></td>
+      <td><button class="btn" onclick="updatePeriod(${i})">Save</button></td>
+    </tr>`;
+  });
+  html+='</tbody></table>';
+  container.innerHTML=html;
+}
+
+function updatePeriod(i){
+  const data=JSON.parse(localStorage.getItem('timetableData')||'[]');
+  data[i].subject=document.getElementById(`sub-${i}`).value;
+  data[i].start=document.getElementById(`start-${i}`).value;
+  data[i].end=document.getElementById(`end-${i}`).value;
+  localStorage.setItem('timetableData', JSON.stringify(data));
+  alert('Updated successfully!');
+  renderTodayTimetable();
+}
+
+// Modal
+function openModal(type){
+  if(!loggedIn) return alert('Please login first');
+  const modal=document.getElementById('modal');
+  const title=document.getElementById('modal-title');
+  const body=document.getElementById('modal-body');
+  body.innerHTML='';
+  if(type==='smartAttendance'){
+    title.innerText='Smart Attendance (Demo)';
+    renderSmartAttendance(body);
+  } else if(type==='studentAnalysis'){
+    title.innerText='Student Attendance Analysis';
+    renderAttendanceAnalysis(body);
+  } else {
+    title.innerText=type;
+    body.innerHTML=`<p>${type} content goes here</p>`;
+  }
+  modal.style.display='flex';
+}
+
+function closeModal(){
+  document.getElementById('modal').style.display='none';
+  stopCamera();
+}
+
+// Smart Attendance
+function renderSmartAttendance(container){
+  container.innerHTML=`
+    <video id="camVideo" autoplay playsinline style="width:100%;height:220px;background:#000"></video>
+    <div style="margin-top:8px">
+      <button class="btn" onclick="startCamera()">Start Camera</button>
+      <button class="btn" onclick="captureFrameSmart()">Capture & Mark Present</button>
+      <button class="btn" onclick="stopCamera()">Stop</button>
+    </div>
+    <h4>Captured Frames</h4>
+    <div id="captures" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px"></div>
+  `;
+}
+
+function startCamera(){
+  const v=document.getElementById('camVideo');
+  if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
+    navigator.mediaDevices.getUserMedia({video:true,audio:false})
+      .then(s=>{cameraStream=s;v.srcObject=s;})
+      .catch(e=>alert('Camera access denied.'));
+  } else alert('getUserMedia not supported');
+}
+
+function stopCamera(){
+  const v=document.getElementById('camVideo');
+  if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;}
+  if(v) v.srcObject=null;
+}
+
+function captureFrameSmart(){
+  const v=document.getElementById('camVideo');
+  if(!v || !v.videoWidth) return alert('Start camera first');
+  const c=document.createElement('canvas'); c.width=v.videoWidth; c.height=v.videoHeight;
+  const ctx=c.getContext('2d'); ctx.drawImage(v,0,0,c.width,c.height);
+  const data=c.toDataURL('image/png');
+  const img=document.createElement('img'); img.src=data; img.style.width='100%'; img.style.cursor='pointer';
+  document.getElementById('captures').appendChild(img);
+
+  // **Mark all students as present** for demo (in real app, use face/eye recognition)
+  const students=JSON.parse(localStorage.getItem('students')||'[]');
+  const records=JSON.parse(localStorage.getItem('attendanceRecords')||'{}');
+  if(!records[selectedDate]) records[selectedDate]={};
+  students.forEach(s=>{records[selectedDate][s.username]='Present';});
+  localStorage.setItem('attendanceRecords', JSON.stringify(records));
+  renderAttendanceTable();
+  alert('All students marked Present (Demo)');
+}
+
+// Calendar
+function renderCalendar(){
+  const calendar=document.getElementById('calendarDays');
+  calendar.innerHTML='';
+  const today=new Date();
+  for(let i=1;i<=31;i++){
+    const d=new Date(today.getFullYear(),today.getMonth(),i);
+    const btn=document.createElement('button');
+    btn.innerText=i;
+    btn.onclick=function(){
+      selectedDate=d.toISOString().split('T')[0];
+      renderAttendanceTable();
+      Array.from(calendar.children).forEach(c=>c.classList.remove('selected-day'));
+      this.classList.add('selected-day');
+    }
+    if(d.toISOString().split('T')[0]===selectedDate) btn.classList.add('selected-day');
+    calendar.appendChild(btn);
+  }
+}
+
+// Attendance Analysis
+function renderAttendanceAnalysis(container){
+  const records=JSON.parse(localStorage.getItem('attendanceRecords')||'{}');
+  const students=JSON.parse(localStorage.getItem('students')||'[]');
+  let html='<table><thead><tr><th>Student</th><th>Present</th><th>Absent</th></tr></thead><tbody>';
+  students.forEach(s=>{
+    let present=0, absent=0;
+    for(const day in records){
+      if(records[day][s.username]==='Present') present++;
+      else if(records[day][s.username]==='Absent') absent++;
+    }
+    html+=`<tr><td>${s.name}</td><td>${present}</td><td>${absent}</td></tr>`;
+  });
+  html+='</tbody></table>';
+  container.innerHTML=html;
+}
+</script>
+
+</body>
+</html>
