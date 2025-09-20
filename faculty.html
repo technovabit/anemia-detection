@@ -67,6 +67,7 @@ canvas{max-width:100%;height:200px}
   <h2>Smart Curriculum & Attendance System</h2>
   <p>Track attendance, manage curriculum, and analyze activities with ease.</p>
   <button class="btn" onclick="openModal('timetable')">Check / Edit Today's Timetable</button>
+  <button class="btn" onclick="openModal('activities')">Add / View Activities</button>
 </div>
 
 <section id="features">
@@ -122,6 +123,25 @@ canvas{max-width:100%;height:200px}
   </div>
 </section>
 
+<section id="activities">
+  <h2>Faculty & Student Activities</h2>
+  <div class="card">
+    <div>
+      <h3>Add New Activity</h3>
+      <input type="text" id="activityName" placeholder="Activity name..." />
+      <input type="date" id="activityDate" />
+      <button class="btn" onclick="addActivity()">Add Activity</button>
+    </div>
+    <div style="margin-top:15px;">
+      <h3>All Activities</h3>
+      <table id="activities-table">
+        <thead><tr><th>Activity</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
 <section id="contact">
   <h2>Contact Us</h2>
   <p style="text-align:center;">📧 team@smartapp.com | ☎️ +91 98765 43210</p>
@@ -166,10 +186,12 @@ function initApp(){
     {period:3,subject:'English',start:'10:40',end:'11:25'},
   ]));
   if(!localStorage.getItem('attendanceRecords')) localStorage.setItem('attendanceRecords', JSON.stringify({}));
+  if(!localStorage.getItem('activities')) localStorage.setItem('activities', JSON.stringify([]));
   renderCalendar();
   refreshStudentManage();
   renderAttendanceTable();
   renderTodayTimetable();
+  renderActivities();
 }
 
 // Students Management
@@ -254,7 +276,6 @@ function renderTodayTimetable(){
     </tr>`;
   });
   html+='</tbody></table>';
-  // Add new period form
   html+=`
     <div style="margin-top:15px;">
       <h4>Add New Period</h4>
@@ -286,9 +307,43 @@ function addPeriod(){
   if(!period || !subject || !start || !end) return alert('Fill all fields');
   const data=JSON.parse(localStorage.getItem('timetableData')||'[]');
   data.push({period:parseInt(period),subject,start,end});
-  data.sort((a,b)=>a.period-b.period); // keep in order
+  data.sort((a,b)=>a.period-b.period);
   localStorage.setItem('timetableData', JSON.stringify(data));
   renderTodayTimetable();
+}
+
+// Activities
+function renderActivities(){
+  const tbody=document.querySelector('#activities-table tbody');
+  const activities=JSON.parse(localStorage.getItem('activities')||'[]');
+  tbody.innerHTML='';
+  activities.forEach((a,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${a.name}</td><td>${a.date}</td>
+      <td><button class="btn" onclick="removeActivity(${i})">Remove</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function addActivity(){
+  const name=document.getElementById('activityName').value.trim();
+  const date=document.getElementById('activityDate').value;
+  if(!name || !date) return alert('Fill all fields');
+  const activities=JSON.parse(localStorage.getItem('activities')||'[]');
+  activities.push({name,date});
+  activities.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  localStorage.setItem('activities', JSON.stringify(activities));
+  document.getElementById('activityName').value='';
+  document.getElementById('activityDate').value='';
+  renderActivities();
+  alert('Activity added successfully! Visible to students.');
+}
+
+function removeActivity(i){
+  const activities=JSON.parse(localStorage.getItem('activities')||'[]');
+  activities.splice(i,1);
+  localStorage.setItem('activities', JSON.stringify(activities));
+  renderActivities();
 }
 
 // Modal
@@ -307,6 +362,9 @@ function openModal(type){
   } else if(type==='timetable'){
     title.innerText="Today's Timetable";
     body.appendChild(document.getElementById('tt-card').cloneNode(true));
+  } else if(type==='activities'){
+    title.innerText='Activities';
+    body.appendChild(document.getElementById('activities').cloneNode(true));
   } else {
     title.innerText=type;
     body.innerHTML=`<p>${type} content goes here</p>`;
