@@ -349,6 +349,7 @@
 <div style="text-align:center; max-width: 900px; margin: 1rem auto;">
   <button class="btn" onclick="openModal('timetable')" style="margin-bottom: 1rem;">Check / Edit Today's Timetable</button>
   <button class="btn" onclick="openModal('activities')" style="margin-bottom: 1rem;">Add / View Activities</button>
+  <button class="btn" onclick="openModal('smartAttendance')" style="margin-bottom: 1rem;">Smart Attendance (Camera)</button>
 </div>
 
 <section id="timetable">
@@ -930,6 +931,10 @@ function openModal(type) {
   else if(type === 'studentAnalysis') {
     title.innerText = 'Student Attendance Analysis';
     renderAttendanceAnalysis(body);
+  }
+  else if(type === 'smartAttendance') {
+    title.innerText = 'Smart Attendance (Camera)';
+    renderSmartAttendance(body);
   }
   else if(type === 'timetable') {
     title.innerText = "Today's Timetable";
