@@ -586,8 +586,8 @@
     setTimeout(() => {
       qrReaderDiv.scrollIntoView({behavior:'smooth', block:'center'});
     }, 200);
-    // Explicitly request camera permission before starting scan
-    navigator.mediaDevices.getUserMedia({ video: true })
+    // Always request rear camera (environment)
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } })
       .then(stream => {
         stream.getTracks().forEach(track => track.stop()); // release camera for html5-qrcode
         setTimeout(() => {
@@ -624,15 +624,23 @@
             }, errorMsg => {
               if (errorMsg && errorMsg.toLowerCase().includes('permission')) {
                 document.getElementById('qrScanStatus').textContent = 'Camera permission denied. Please allow camera access.';
+              } else {
+                document.getElementById('qrScanStatus').textContent = 'Camera error: ' + errorMsg;
               }
             });
           } catch (err) {
-            document.getElementById('qrScanStatus').textContent = 'Unable to initialize camera. Please check browser permissions or try a different browser.';
+            document.getElementById('qrScanStatus').textContent = 'Unable to initialize camera. Please check camera connection and permissions.';
           }
         }, 200);
       })
       .catch(err => {
-        document.getElementById('qrScanStatus').textContent = 'Camera permission denied. Please allow camera access.';
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          document.getElementById('qrScanStatus').textContent = 'Camera permission denied. Please allow camera access.';
+        } else if (err.name === 'OverconstrainedError' || err.name === 'ConstraintNotSatisfiedError') {
+          document.getElementById('qrScanStatus').textContent = 'Rear camera not found. Please check your device or use a different one.';
+        } else {
+          document.getElementById('qrScanStatus').textContent = 'Unable to access camera. Please check permissions or try a different device.';
+        }
       });
   });
 
