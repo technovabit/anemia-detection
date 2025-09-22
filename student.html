@@ -1,46 +1,295 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Smart Curriculum & Attendance — Student</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;color:#222;line-height:1.6}
-header{background:#1e3a8a;color:#fff;padding:16px 24px;display:flex;justify-content:center;align-items:center;position:sticky;top:0;z-index:1000}
-header h1{font-size:1.25rem}
-section{padding:40px 16px;max-width:1100px;margin:auto;display:none}
-h2{text-align:center;margin-bottom:28px;color:#1e3a8a}
-.card{background:#fff;padding:18px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.08);transition:.2s}
-.card:hover{transform:translateY(-4px)}
-table{width:100%;border-collapse:collapse;margin-top:10px}
-th,td{border:1px solid #ddd;padding:8px;text-align:left}
-canvas{max-width:100%;height:200px}
-input{padding:10px;border-radius:6px;border:1px solid #ccc;width:100%;margin-bottom:12px}
-.btn{background:#ffd700;color:#000;padding:10px 14px;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:.2s;width:100%}
-.btn:hover{background:#facc15}
-.login-container{display:flex;justify-content:center;align-items:center;height:calc(100vh - 64px);}
-.login-box{background:#fff;padding:32px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.2);max-width:400px;width:90%;}
-footer{padding:20px;text-align:center;color:#555;}
-ul{list-style:disc inside;}
+  /* Base styles + Animated gradient background */
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(-45deg, #1e3a8a, #3b82f6, #1e3a8a, #3b82f6);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    min-height: 100vh;
+    color: #222;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  @keyframes gradientBG {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  header {
+    background: rgba(30, 58, 138, 0.85);
+    color: #fff;
+    padding: 1rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    animation: slideDownFade 1s ease forwards;
+  }
+
+  @keyframes slideDownFade {
+    from {
+      opacity: 0;
+      transform: translateY(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+  }
+
+  section {
+    max-width: 900px;
+    background: #fff;
+    margin: 2rem auto;
+    padding: 2rem 2rem 3rem 2rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    text-align: center;
+    display: none;
+    animation: fadeInUp 0.8s ease forwards;
+    opacity: 0;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(25px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  h2 {
+    text-align: center;
+    margin-bottom: 28px;
+    color: #1e3a8a;
+    font-weight: 700;
+    text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.7);
+  }
+
+  .card {
+    background: #fff;
+    padding: 18px 20px;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(59, 130, 246, 0.15);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+  }
+
+  .card:hover {
+    box-shadow: 0 16px 45px rgba(59, 130, 246, 0.3);
+    transform: translateY(-8px);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    font-size: 0.95rem;
+  }
+
+  th,
+  td {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  th {
+    background: #3b82f6;
+    color: white;
+    font-weight: 700;
+  }
+
+  tbody tr:hover {
+    background: #f1f5f9;
+  }
+
+  input {
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #bbb;
+    width: 100%;
+    margin-bottom: 1.2rem;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+  }
+
+  input:focus {
+    border-color: #3b82f6;
+    outline: none;
+  }
+
+  .btn {
+    background: #ffd700;
+    color: #000;
+    padding: 0.75rem 1.3rem;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 15px rgba(255, 215, 0, 0.55);
+    transition: background-color 0.3s ease, box-shadow 0.35s ease, transform 0.2s ease;
+    max-width: 320px;
+    margin: 1rem auto;
+    display: block;
+  }
+
+  .btn:hover {
+    background: #facc15;
+    box-shadow: 0 12px 28px rgba(250, 204, 21, 0.85);
+    transform: scale(1.08);
+  }
+
+  .btn:active {
+    transform: scale(0.95);
+  }
+
+  .login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 64px);
+  }
+
+  .login-box {
+    background: #fff;
+    padding: 3rem 3rem 3rem 3rem;
+    border-radius: 16px;
+    box-shadow: 0 14px 45px rgba(0, 0, 0, 0.35);
+    max-width: 420px;
+    width: 90%;
+    text-align: center;
+    animation: popUp 0.6s ease forwards;
+  }
+
+  @keyframes popUp {
+    from {
+      opacity: 0;
+      transform: translateY(40px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  footer {
+    padding: 2rem 1rem;
+    text-align: center;
+    color:#eee;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    background: rgba(30, 41, 59, 0.9);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.1);
+    margin-top: 2rem;
+  }
+
+  /* Profile photo styling */
+  #profilePhoto {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #3b82f6;
+    margin: 0 auto 1.5rem auto;
+    box-shadow: 0 0 20px #3b82f6aa;
+    animation: pulseGlow 3s ease-in-out infinite;
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% {
+      box-shadow: 0 0 15px #3b82f6aa;
+    }
+    50% {
+      box-shadow: 0 0 28px #3b82f6dd;
+    }
+  }
+
+  /* Useful links section styling */
+  #usefulLinks ul {
+    list-style:none;
+    padding-left:0;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  #usefulLinks ul li {
+    background: #3b82f6;
+    color: white;
+    padding: 1rem 1.4rem;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(59,130,246,0.3);
+    cursor: pointer;
+    flex: 1 1 160px;
+    font-weight: 600;
+    text-align: center;
+    transition: background-color 0.3s ease;
+  }
+  #usefulLinks ul li:hover {
+    background: #2563eb;
+  }
+
+  /* Announcements / Notices */
+  #notices ul {
+    list-style: disc inside;
+    max-width: 600px;
+    margin: 0 auto;
+    color: #555;
+    font-size: 1rem;
+  }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>Smart Curriculum & Attendance</h1>
-</header>
+<header><h1>Smart Curriculum & Attendance</h1></header>
 
-<!-- Full-page Login -->
+<!-- Login Page -->
 <div class="login-container" id="loginPage">
   <div class="login-box">
-    <h2 style="text-align:center;margin-bottom:20px;">Student Login</h2>
-    <input id="loginUser" type="text" placeholder="Username"/>
-    <input id="loginPass" type="password" placeholder="Password"/>
-    <button class="btn" onclick="submitLogin()">Login</button>
-    <p style="margin-top:12px;color:#555;text-align:center;font-size:0.9rem;">Ask your faculty for credentials</p>
+    <h2>Student Login</h2>
+    <input id="loginUser" type="text" placeholder="Username" autocomplete="username" />
+    <input id="loginPass" type="password" placeholder="Password" autocomplete="current-password" />
+    <button class="btn" id="loginBtn">Login</button>
+    <p style="color:#555;margin-top:12px;font-size:0.9rem;">Ask your faculty for credentials</p>
   </div>
 </div>
+
+<!-- Profile Info with photo and name -->
+<section id="profile" style="display:none;">
+  <img id="profilePhoto" src="" alt="Your Profile Photo" />
+  <h2>Welcome, <span id="studentNameDisplay"></span></h2>
+</section>
 
 <section id="timetable">
   <h2>Your Timetable</h2>
@@ -65,127 +314,179 @@ ul{list-style:disc inside;}
   </div>
 </section>
 
-<section id="contact">
-  <h2>Contact Us</h2>
-  <p style="text-align:center;">📧 team@smartapp.com | ☎️ +91 98765 43210</p>
+<section id="notices">
+  <h2>Latest Announcements</h2>
+  <div class="card">
+    <ul>
+      <li>Campus library will be open from 8 AM to 8 PM starting next week.</li>
+      <li>Semester exams will begin from 5th Dec. Check your timetable.</li>
+      <li>Join the upcoming coding workshop on 15th Nov. Registration open now.</li>
+    </ul>
+  </div>
 </section>
 
-<footer>
-  <p>© 2025 Smart Curriculum & Attendance App</p>
-</footer>
+<section id="usefulLinks">
+  <h2>Quick Links</h2>
+  <ul>
+    <li onclick="alert('Redirecting to Fees Payment')">Fees Payment</li>
+    <li onclick="alert('Redirecting to Library')">Library</li>
+    <li onclick="alert('Redirecting to Grade Check')">Check Grades</li>
+    <li onclick="alert('Redirecting to Course Materials')">Course Materials</li>
+    <li onclick="alert('Redirecting to Support')">Support</li>
+  </ul>
+</section>
+
+<section id="contact">
+  <h2>Contact Us</h2>
+  <p style="text-align:center;color:#1e3a8a;font-weight:600;">
+    📧 <a href="mailto:team@smartapp.com" style="color:#1e3a8a;text-decoration:none;">team@smartapp.com</a> | ☎️ +91 98765 43210
+  </p>
+</section>
+
+<footer>© 2025 Smart Curriculum & Attendance App</footer>
 
 <script>
-// --- Ensure demo data exists ---
-if(!localStorage.getItem('students')){
-  localStorage.setItem('students', JSON.stringify([{name:'Demo Student',username:'student',password:'student'}]));
-}
-if(!localStorage.getItem('timetableData')) localStorage.setItem('timetableData', JSON.stringify([
-  {period:1,subject:'Mathematics',start:'09:00',end:'09:45'},
-  {period:2,subject:'Science',start:'09:50',end:'10:35'},
-  {period:3,subject:'English',start:'10:40',end:'11:25'},
-  {period:4,subject:'History',start:'11:30',end:'12:15'}
-]));
-if(!localStorage.getItem('activities')) localStorage.setItem('activities', JSON.stringify([
-  {name:'Math Quiz', date:'2025-09-20'},
-  {name:'Science Project', date:'2025-09-21'}
-]));
+  let currentStudent = null;
 
-let currentStudent='';
+  // Demo storage default
+  if (!localStorage.getItem('students')) {
+    localStorage.setItem(
+      'students',
+      JSON.stringify([
+        {
+          name: 'Demo Student',
+          username: 'student',
+          password: 'student',
+          photo:
+            'https://randomuser.me/api/portraits/lego/1.jpg',
+        },
+      ])
+    );
+  }
+  if (!localStorage.getItem('timetableData')) {
+    localStorage.setItem(
+      'timetableData',
+      JSON.stringify([
+        { period: 1, subject: 'Mathematics', start: '09:00', end: '09:45' },
+        { period: 2, subject: 'Science', start: '09:50', end: '10:35' },
+        { period: 3, subject: 'English', start: '10:40', end: '11:25' },
+        { period: 4, subject: 'History', start: '11:30', end: '12:15' },
+      ])
+    );
+  }
+  if (!localStorage.getItem('activities')) {
+    localStorage.setItem(
+      'activities',
+      JSON.stringify([
+        { name: 'Math Quiz', date: '2025-09-20' },
+        { name: 'Science Project', date: '2025-09-21' },
+      ])
+    );
+  }
+  if (!localStorage.getItem('attendanceRecords')) {
+    localStorage.setItem('attendanceRecords', JSON.stringify({}));
+  }
 
-// --- Login ---
-function submitLogin(){
-  const user=document.getElementById('loginUser').value.trim();
-  const pass=document.getElementById('loginPass').value.trim();
-  const students=JSON.parse(localStorage.getItem('students')||'[]');
-  const found=students.find(s=>s.username===user && s.password===pass);
-  if(found){
-    currentStudent=user;
-    document.getElementById('loginPage').style.display='none';
+  document.getElementById('loginBtn').addEventListener('click', () => {
+    const user = document.getElementById('loginUser').value.trim();
+    const pass = document.getElementById('loginPass').value.trim();
+    const students = JSON.parse(localStorage.getItem('students') || '[]');
+    const found = students.find(s => s.username === user && s.password === pass);
+    if (!found) {
+      alert('Invalid username or password');
+      return;
+    }
+    currentStudent = found;
+    document.getElementById('loginPage').style.display = 'none';
     showSections();
     renderDashboard();
-    return;
+  });
+
+  function showSections() {
+    document.getElementById('profile').style.display = 'block';
+    document.querySelectorAll('section').forEach(section => {
+      if (section.id !== 'profile') section.style.display = 'block';
+    });
   }
-  alert('Invalid username or password');
-}
 
-// --- Show sections ---
-function showSections(){
-  document.querySelectorAll('section').forEach(sec=>sec.style.display='block');
-}
-
-// --- Dashboard render ---
-function renderDashboard(){
-  renderTimetable();
-  renderActivities();
-  renderAttendance();
-}
-
-// --- Timetable ---
-function renderTimetable(){
-  const data=JSON.parse(localStorage.getItem('timetableData')||'[]');
-  let html='<table><thead><tr><th>Period</th><th>Subject</th><th>Start</th><th>End</th></tr></thead><tbody>';
-  data.forEach(r=>{html+=`<tr><td>${r.period}</td><td>${r.subject}</td><td>${r.start}</td><td>${r.end}</td></tr>`});
-  html+='</tbody></table>';
-  document.getElementById('tt-card').innerHTML=html;
-}
-
-// --- Activities (dynamic from faculty) ---
-function renderActivities(){
-  const acts=JSON.parse(localStorage.getItem('activities')||'[]');
-  const ul=document.getElementById('activities-list');
-  ul.innerHTML='';
-  if(acts.length===0){ul.innerHTML='<li>No activities assigned yet</li>'; return;}
-  acts.forEach(a=>{
-    const li=document.createElement('li');
-    li.innerText=a.date ? `${a.name} (${a.date})` : a.name;
-    ul.appendChild(li);
-  });
-}
-
-// --- Attendance ---
-function renderAttendance(){
-  const records=JSON.parse(localStorage.getItem('attendanceRecords')||'{}');
-  const canvas=document.getElementById('attChart'); 
-  const ctx=canvas.getContext('2d');
-  const dates=Object.keys(records).sort();
-  const data=dates.map(d=>records[d][currentStudent]==='Present'?1:0);
-
-  // Canvas chart
-  canvas.width=canvas.clientWidth;
-  canvas.height=200;
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  const padding=30;
-  const w=(canvas.width-2*padding)/dates.length;
-  data.forEach((v,i)=>{
-    const h=((canvas.height-2*padding)*(v/1));
-    const x=padding + i*w + 10;
-    const y=canvas.height - padding - h;
-    ctx.fillStyle='rgba(59,130,246,0.9)';
-    ctx.fillRect(x,y,w-20,h);
-    ctx.fillStyle='#333';
-    ctx.font='12px sans-serif';
-    ctx.fillText(dates[i],x,canvas.height-8);
-  });
-
-  // Table
-  const tbody=document.querySelector('#attTable tbody');
-  tbody.innerHTML='';
-  dates.forEach(d=>{
-    const status=records[d][currentStudent] || 'Absent';
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${d}</td><td>${status}</td>`;
-    tbody.appendChild(tr);
-  });
-}
-
-// Refresh attendance and activities periodically (if faculty updates)
-setInterval(()=>{
-  if(currentStudent){
+  function renderDashboard() {
+    document.getElementById('profilePhoto').src = currentStudent.photo || '';
+    document.getElementById('studentNameDisplay').textContent = currentStudent.name || 'Student';
+    renderTimetable();
+    renderActivities();
     renderAttendance();
-    renderActivities(); // keep activities synced
   }
-},5000);
 
+  function renderTimetable() {
+    const data = JSON.parse(localStorage.getItem('timetableData') || '[]');
+    let html = `<table>
+      <thead><tr><th>Period</th><th>Subject</th><th>Start</th><th>End</th></tr></thead><tbody>`;
+    data.forEach(row => {
+      html += `<tr>
+          <td>${row.period}</td>
+          <td>${row.subject}</td>
+          <td>${row.start}</td>
+          <td>${row.end}</td>
+        </tr>`;
+    });
+    html += '</tbody></table>';
+    document.getElementById('tt-card').innerHTML = html;
+  }
+
+  function renderActivities() {
+    const activities = JSON.parse(localStorage.getItem('activities') || '[]');
+    const ul = document.getElementById('activities-list');
+    ul.innerHTML = '';
+    if (activities.length === 0) {
+      ul.innerHTML = '<li>No activities assigned yet</li>';
+      return;
+    }
+    activities.forEach(act => {
+      const li = document.createElement('li');
+      li.textContent = act.date ? `${act.name} (${act.date})` : act.name;
+      ul.appendChild(li);
+    });
+  }
+
+  function renderAttendance() {
+    const records = JSON.parse(localStorage.getItem('attendanceRecords') || '{}');
+    const canvas = document.getElementById('attChart');
+    const ctx = canvas.getContext('2d');
+    const dates = Object.keys(records)
+      .filter(d => currentStudent && records[d][currentStudent.username] !== undefined)
+      .sort();
+
+    const values = dates.map(d => (records[d][currentStudent.username] === 'Present' ? 1 : 0));
+
+    canvas.width = canvas.clientWidth;
+    canvas.height = 200;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const padding = 40;
+    const barWidth = (canvas.width - 2 * padding) / dates.length;
+
+    values.forEach((val, i) => {
+      const barHeight = val * (canvas.height - 2 * padding);
+      const x = padding + i * barWidth + barWidth * 0.1;
+      const y = canvas.height - padding - barHeight;
+
+      ctx.fillStyle = val ? 'rgba(59, 130, 246, 0.9)' : '#ddd';
+      ctx.fillRect(x, y, barWidth * 0.8, barHeight);
+
+      ctx.fillStyle = '#333';
+      ctx.font = '12px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif';
+      ctx.fillText(dates[i], x, canvas.height - 15);
+    });
+
+    const tbody = document.querySelector('#attTable tbody');
+    tbody.innerHTML = '';
+    dates.forEach(date => {
+      const status = records[date][currentStudent.username] || 'Absent';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${date}</td><td>${status}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
 </script>
 
 </body>
