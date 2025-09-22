@@ -330,7 +330,7 @@ footer small:hover {color: var(--accent-2);}
 </section>
 
 <footer>
-  <small>© <span id="year"></span> SMCE</small>
+  <small id="adminRedirect" style="cursor:pointer;">© <span id="year"></span> SMCE</small>
   <small>Made with ♥</small>
 </footer>
 </div>
@@ -419,6 +419,10 @@ document.querySelectorAll(".close").forEach(c=>{
   c.onclick=()=>hideModal(c.closest(".modal"));
 });
 window.onclick=e=>{ if(e.target.classList.contains("modal")) hideModal(e.target); }
+// Make footer copyright clickable to go to admin
+document.getElementById("adminRedirect").onclick = function() {
+  window.location.href = "admin.html";
+};
 </script>
 </body>
 </html>
