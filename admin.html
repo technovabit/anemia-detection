@@ -1,0 +1,153 @@
+<section id="facultyManagement" style="max-width:600px;margin:2rem auto;">
+  <style>
+    body {
+      font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+      min-height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 8px 32px rgba(59,130,246,0.12);
+      padding: 2.2rem 2.2rem 2.5rem 2.2rem;
+      margin-top: 2rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      animation: fadeIn 1.2s;
+    }
+    @keyframes fadeIn {from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    h2 {
+      text-align: center;
+      color: #3b82f6;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.02em;
+    }
+    h3 {
+      color: #1e3a8a;
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      margin-top: 1.5rem;
+    }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 0.9rem;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      margin-bottom: 1.1rem;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+    input:focus {
+      border-color: #3b82f6;
+      outline: none;
+    }
+    .btn {
+      background: linear-gradient(90deg, #3b82f6 60%, #06b6d4 100%);
+      color: #fff;
+      padding: 0.7rem 1.5rem;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(59,130,246,0.13);
+      transition: background 0.3s, transform 0.2s;
+      margin-top: 0.5rem;
+    }
+    .btn:hover {
+      background: linear-gradient(90deg, #2563eb 60%, #0ea5e9 100%);
+      transform: scale(1.06);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1.2rem;
+      font-size: 1rem;
+      background: #f8fafc;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(59,130,246,0.07);
+    }
+    th, td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+    }
+    th {
+      background: #3b82f6;
+      color: #fff;
+      font-weight: 700;
+      border-bottom: 2px solid #2563eb;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    #addFacultyStatus {
+      margin-top: 0.7rem;
+      color: #ef4444;
+      font-weight: bold;
+      font-size: 1rem;
+      text-align: center;
+      min-height: 1.2em;
+    }
+  </style>
+  <h2>Manage Faculties</h2>
+  <div class="card">
+    <h3>Add New Faculty</h3>
+    <input type="text" id="newFacultyUser" placeholder="Faculty Username" />
+    <input type="password" id="newFacultyPass" placeholder="Faculty Password" />
+    <button class="btn" id="addFacultyBtn">Add Faculty</button>
+    <div id="addFacultyStatus"></div>
+    <h3>Existing Faculties</h3>
+    <table>
+      <thead><tr><th>Username</th><th>Password</th><th>Actions</th></tr></thead>
+      <tbody id="facultyList"></tbody>
+    </table>
+  </div>
+</section>
+<script>
+if (!localStorage.getItem('faculties')) {
+  localStorage.setItem('faculties', JSON.stringify([{username:'faculty',password:'123'}]));
+}
+function renderFacultyList() {
+  const faculties = JSON.parse(localStorage.getItem('faculties') || '[]');
+  const tbody = document.getElementById('facultyList');
+  tbody.innerHTML = '';
+  faculties.forEach((f, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${f.username}</td><td>${f.password}</td><td><button class='btn' onclick='removeFaculty(${i})'>Remove</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+document.getElementById('addFacultyBtn').addEventListener('click', () => {
+  const user = document.getElementById('newFacultyUser').value.trim();
+  const pass = document.getElementById('newFacultyPass').value.trim();
+  if (!user || !pass) {
+    document.getElementById('addFacultyStatus').textContent = 'Please fill all fields.';
+    return;
+  }
+  let faculties = JSON.parse(localStorage.getItem('faculties') || '[]');
+  if (faculties.find(f => f.username === user)) {
+    document.getElementById('addFacultyStatus').textContent = 'Username already exists.';
+    return;
+  }
+  faculties.push({username:user,password:pass});
+  localStorage.setItem('faculties', JSON.stringify(faculties));
+  document.getElementById('addFacultyStatus').textContent = 'Faculty added successfully!';
+  document.getElementById('newFacultyUser').value = '';
+  document.getElementById('newFacultyPass').value = '';
+  renderFacultyList();
+});
+function removeFaculty(i) {
+  let faculties = JSON.parse(localStorage.getItem('faculties') || '[]');
+  faculties.splice(i, 1);
+  localStorage.setItem('faculties', JSON.stringify(faculties));
+  renderFacultyList();
+}
+renderFacultyList();
+</script>
