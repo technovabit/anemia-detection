@@ -559,52 +559,81 @@
   document.querySelectorAll('section').forEach(s => s.style.display = 'none');
   document.getElementById('qrScan').style.display = 'block';
   document.getElementById('qrScanStatus').textContent = '';
-  // If a previous scan is running, stop it and clear
-  if (window.qrReaderInstance && window.qrReaderInstance._isScanning) {
+  // Always clear and stop previous scan
+  if (window.qrReaderInstance) {
     window.qrReaderInstance.stop().catch(()=>{});
     window.qrReaderInstance = null;
   }
-  document.getElementById('qr-reader').innerHTML = '';
+  const qrReaderDiv = document.getElementById('qr-reader');
+  qrReaderDiv.innerHTML = '';
+  qrReaderDiv.style.display = 'block';
+  qrReaderDiv.style.visibility = 'visible';
+  setTimeout(() => {
+    qrReaderDiv.scrollIntoView({behavior:'smooth', block:'center'});
+  }, 200);
 // Removed stray closing brace
   }
   document.getElementById('startQrScanBtn')?.addEventListener('click', () => {
-    // Create new instance and store globally so we can stop it later
-    if (window.qrReaderInstance && window.qrReaderInstance._isScanning) {
+    // Always clear and stop previous scan
+    const qrReaderDiv = document.getElementById('qr-reader');
+    if (window.qrReaderInstance) {
       window.qrReaderInstance.stop().catch(()=>{});
       window.qrReaderInstance = null;
     }
-    const qrReader = new Html5Qrcode("qr-reader");
-    window.qrReaderInstance = qrReader;
-    qrReader.start({ facingMode: "environment" }, {
-      fps: 10,
-      qrbox: 250
-    }, qrCodeMessage => {
-      try {
-        const data = JSON.parse(qrCodeMessage);
-        const now = Date.now();
-        if (now > data.expires) {
-          document.getElementById('qrScanStatus').textContent = 'QR code expired.';
-          qrReader.stop();
-          window.qrReaderInstance = null;
-          return;
-        }
-        // Mark attendance for this period and date
-        const records = JSON.parse(localStorage.getItem('attendanceRecords') || '{}');
-        if (!records[data.date]) records[data.date] = {};
-        records[data.date][currentStudent.username] = 'Present';
-        localStorage.setItem('attendanceRecords', JSON.stringify(records));
-        document.getElementById('qrScanStatus').textContent = 'Attendance marked Present!';
-        qrReader.stop();
-        window.qrReaderInstance = null;
-        renderAttendance();
-      } catch (e) {
-        document.getElementById('qrScanStatus').textContent = 'Invalid QR code.';
-        qrReader.stop();
-        window.qrReaderInstance = null;
-      }
-    }, errorMsg => {
-      // ignore scan errors
-    });
+    qrReaderDiv.innerHTML = '';
+    qrReaderDiv.style.display = 'block';
+    qrReaderDiv.style.visibility = 'visible';
+    setTimeout(() => {
+      qrReaderDiv.scrollIntoView({behavior:'smooth', block:'center'});
+    }, 200);
+    // Explicitly request camera permission before starting scan
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        stream.getTracks().forEach(track => track.stop()); // release camera for html5-qrcode
+        setTimeout(() => {
+          try {
+            const qrReader = new Html5Qrcode('qr-reader');
+            window.qrReaderInstance = qrReader;
+            qrReader.start({ facingMode: "environment" }, {
+              fps: 10,
+              qrbox: 250
+            }, qrCodeMessage => {
+              try {
+                const data = JSON.parse(qrCodeMessage);
+                const now = Date.now();
+                if (now > data.expires) {
+                  document.getElementById('qrScanStatus').textContent = 'QR code expired.';
+                  qrReader.stop();
+                  window.qrReaderInstance = null;
+                  return;
+                }
+                // Mark attendance for this period and date
+                const records = JSON.parse(localStorage.getItem('attendanceRecords') || '{}');
+                if (!records[data.date]) records[data.date] = {};
+                records[data.date][currentStudent.username] = 'Present';
+                localStorage.setItem('attendanceRecords', JSON.stringify(records));
+                document.getElementById('qrScanStatus').textContent = 'Attendance marked Present!';
+                qrReader.stop();
+                window.qrReaderInstance = null;
+                renderAttendance();
+              } catch (e) {
+                document.getElementById('qrScanStatus').textContent = 'Invalid QR code.';
+                qrReader.stop();
+                window.qrReaderInstance = null;
+              }
+            }, errorMsg => {
+              if (errorMsg && errorMsg.toLowerCase().includes('permission')) {
+                document.getElementById('qrScanStatus').textContent = 'Camera permission denied. Please allow camera access.';
+              }
+            });
+          } catch (err) {
+            document.getElementById('qrScanStatus').textContent = 'Unable to initialize camera. Please check browser permissions or try a different browser.';
+          }
+        }, 200);
+      })
+      .catch(err => {
+        document.getElementById('qrScanStatus').textContent = 'Camera permission denied. Please allow camera access.';
+      });
   });
 
   function showChangePassword() {
