@@ -342,6 +342,7 @@
 
 <header>
   <h1>Smart Curriculum & Attendance</h1>
+  <button class="btn" id="facultyLogoutBtn" style="float:right;margin-top:-8px;display:none;">Logout</button>
 </header>
 
 <!-- Buttons at top -->
@@ -438,7 +439,7 @@
   <div class="toolbar">
     <button class="btn" onclick="openModal('markAttendance')">Mark Attendance</button>
     <button class="btn" onclick="openModal('studentAnalysis')">Student Analysis</button>
-    <button class="btn" onclick="openModal('smartAttendance')">Smart Attendance (Camera)</button>
+    <button class="btn" onclick="openModal('qrAttendance')">Generate QR Code for Attendance</button>
     <button class="btn" onclick="clearAttendance()">Clear Attendance for Selected Date</button>
   </div>
   <div id="attendance-table" class="card">
@@ -487,7 +488,6 @@
     <input id="loginUser" type="text" placeholder="Username" autocomplete="username" />
     <input id="loginPass" type="password" placeholder="Password" autocomplete="current-password" />
     <button class="btn" onclick="submitLogin()">Login</button>
-    <p>Username: <strong>faculty</strong> | Password: <strong>123</strong></p>
   </div>
 </div>
 
@@ -503,6 +503,67 @@
 <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 
 <script>
+// QR Code Attendance
+// Load QRCode.js from CDN
+if (!window.QRCode) {
+  var qrScript = document.createElement('script');
+  qrScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+  document.head.appendChild(qrScript);
+}
+
+function renderQrAttendance(container) {
+  // Get timetable periods
+  const periods = JSON.parse(localStorage.getItem('timetableData') || '[]');
+  let html = '<h4>Select Period to Generate QR</h4>';
+  html += '<select id="qrPeriodSelect">';
+  periods.forEach(p => {
+    html += `<option value="${p.period}">${p.period}: ${p.subject} (${p.start} - ${p.end})</option>`;
+  });
+  html += '</select>';
+  html += '<button class="btn" id="generateQrBtn" style="margin-left:1rem;">Generate QR Code</button>';
+  html += '<div id="qrCodeContainer" style="margin-top:2rem;text-align:center;"></div>';
+  html += '<div id="qrTimer" style="margin-top:1rem;font-weight:bold;color:#ef4444;"></div>';
+  container.innerHTML = html;
+
+  document.getElementById('generateQrBtn').onclick = function() {
+    const period = document.getElementById('qrPeriodSelect').value;
+    generateQrCode(period);
+  };
+}
+
+let qrTimerInterval = null;
+function generateQrCode(period) {
+  // QR data: date, period, expiry
+  const now = new Date();
+  const expiry = new Date(now.getTime() + 60000); // 1 min expiry
+  const qrData = JSON.stringify({
+    date: selectedISODate,
+    period: period,
+    expires: expiry.getTime()
+  });
+  const qrContainer = document.getElementById('qrCodeContainer');
+  qrContainer.innerHTML = '';
+  new QRCode(qrContainer, {
+    text: qrData,
+    width: 220,
+    height: 220
+  });
+  // Timer
+  const timerEl = document.getElementById('qrTimer');
+  let secondsLeft = 60;
+  timerEl.textContent = `QR code expires in ${secondsLeft} seconds.`;
+  if (qrTimerInterval) clearInterval(qrTimerInterval);
+  qrTimerInterval = setInterval(() => {
+    secondsLeft--;
+    if (secondsLeft <= 0) {
+      timerEl.textContent = 'QR code expired.';
+      qrContainer.innerHTML = '<p style="color:#ef4444;font-weight:bold;">Expired</p>';
+      clearInterval(qrTimerInterval);
+    } else {
+      timerEl.textContent = `QR code expires in ${secondsLeft} seconds.`;
+    }
+  }, 1000);
+}
 let loggedIn = false;
 let cameraStream = null;
 let selectedDate = new Date();
@@ -531,13 +592,16 @@ photoInput.addEventListener('change', (e) => {
 function submitLogin() {
   const user = document.getElementById('loginUser').value.trim();
   const pass = document.getElementById('loginPass').value.trim();
-  if (user === 'faculty' && pass === '123') {
+  // Use faculties from localStorage
+  const faculties = JSON.parse(localStorage.getItem('faculties') || '[]');
+  if (faculties.find(f => f.username === user && f.password === pass)) {
     loggedIn = true;
     const loginPage = document.getElementById('loginPage');
     loginPage.classList.add('hidden');
     setTimeout(() => {
       loginPage.style.display = 'none';
       document.querySelectorAll('section').forEach(s => s.style.display = 'block');
+      document.getElementById('facultyLogoutBtn').style.display = 'inline-block';
       initApp();
     }, 500);
   } else {
@@ -859,9 +923,9 @@ function openModal(type) {
   const body = document.getElementById('modal-body');
   body.innerHTML = '';
   title.innerText = '';
-  if(type === 'smartAttendance') {
-    title.innerText = 'Smart Attendance (Face Recognition)';
-    renderSmartAttendance(body);
+  if(type === 'qrAttendance') {
+    title.innerText = 'QR Code Attendance';
+    renderQrAttendance(body);
   }
   else if(type === 'studentAnalysis') {
     title.innerText = 'Student Attendance Analysis';
@@ -1108,6 +1172,17 @@ window.onload = () => {
   document.querySelectorAll('section').forEach(s => s.style.display = 'none');
   document.getElementById('loginPage').style.display = 'flex';
 }
+
+document.getElementById('facultyLogoutBtn').addEventListener('click', () => {
+  loggedIn = false;
+  document.querySelectorAll('section').forEach(s => s.style.display = 'none');
+  const loginPage = document.getElementById('loginPage');
+  loginPage.style.display = 'flex';
+  loginPage.classList.remove('hidden');
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('facultyLogoutBtn').style.display = 'none';
+});
 </script>
 
 </body>
