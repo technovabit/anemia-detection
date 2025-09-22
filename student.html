@@ -272,7 +272,9 @@
 </head>
 <body>
 
-<header><h1>Smart Curriculum & Attendance</h1></header>
+<header><h1>Smart Curriculum & Attendance</h1>
+  <button class="btn" id="studentLogoutBtn" style="float:right;margin-top:-8px;display:none;">Logout</button>
+</header>
 
 <!-- Login Page -->
 <div class="login-container" id="loginPage">
@@ -317,23 +319,33 @@
 <section id="notices">
   <h2>Latest Announcements</h2>
   <div class="card">
-    <ul>
-      <li>Campus library will be open from 8 AM to 8 PM starting next week.</li>
-      <li>Semester exams will begin from 5th Dec. Check your timetable.</li>
-      <li>Join the upcoming coding workshop on 15th Nov. Registration open now.</li>
-    </ul>
+    <ul id="studentAnnouncementsList"></ul>
   </div>
 </section>
 
 <section id="usefulLinks">
   <h2>Quick Links</h2>
-  <ul>
-    <li onclick="alert('Redirecting to Fees Payment')">Fees Payment</li>
-    <li onclick="alert('Redirecting to Library')">Library</li>
-    <li onclick="alert('Redirecting to Grade Check')">Check Grades</li>
-    <li onclick="alert('Redirecting to Course Materials')">Course Materials</li>
-    <li onclick="alert('Redirecting to Support')">Support</li>
-  </ul>
+  <ul id="studentQuickLinks"></ul>
+</section>
+
+<section id="qrScan" style="display:none;">
+  <h2>Scan QR Code for Attendance</h2>
+  <div class="card">
+    <button class="btn" id="startQrScanBtn">Start QR Scan</button>
+    <div id="qr-reader" style="margin-top:2rem;"></div>
+    <div id="qrScanStatus" style="margin-top:1rem;font-weight:bold;color:#ef4444;"></div>
+  </div>
+</section>
+
+<section id="changePassword" style="display:none;max-width:400px;margin:2rem auto;">
+  <h2>Change Password</h2>
+  <div class="card">
+    <input type="password" id="oldPass" placeholder="Current Password" />
+    <input type="password" id="newPass" placeholder="New Password" />
+    <input type="password" id="confirmPass" placeholder="Confirm New Password" />
+    <button class="btn" id="changePassBtn">Change Password</button>
+    <div id="changePassStatus" style="margin-top:1rem;color:#ef4444;font-weight:bold;"></div>
+  </div>
 </section>
 
 <section id="contact">
@@ -345,6 +357,7 @@
 
 <footer>© 2025 Smart Curriculum & Attendance App</footer>
 
+<script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
 <script>
   let currentStudent = null;
 
@@ -400,6 +413,16 @@
     document.getElementById('loginPage').style.display = 'none';
     showSections();
     renderDashboard();
+    document.getElementById('studentLogoutBtn').style.display = 'inline-block';
+  });
+
+  document.getElementById('studentLogoutBtn').addEventListener('click', () => {
+    currentStudent = null;
+    document.querySelectorAll('section').forEach(s => s.style.display = 'none');
+    document.getElementById('loginPage').style.display = 'flex';
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+    document.getElementById('studentLogoutBtn').style.display = 'none';
   });
 
   function showSections() {
@@ -415,6 +438,49 @@
     renderTimetable();
     renderActivities();
     renderAttendance();
+    renderStudentAnnouncementsList();
+    renderStudentQuickLinks();
+  }
+
+  function renderStudentQuickLinks() {
+    const ul = document.getElementById('studentQuickLinks');
+    ul.innerHTML = '';
+    let quickLinks = JSON.parse(localStorage.getItem('quickLinks') || '[]');
+    if (quickLinks.length === 0) {
+      ul.innerHTML = '<li>No quick links yet.</li>';
+      return;
+    }
+    quickLinks.forEach(link => {
+      const li = document.createElement('li');
+      li.innerHTML = `<a href="${link.url}" target="_blank" style="color:#fff;text-decoration:none;">${link.text}</a>`;
+      ul.appendChild(li);
+    });
+    // Always add QR scan option
+    const qrLi = document.createElement('li');
+    qrLi.textContent = 'Scan QR for Attendance';
+    qrLi.style.background = '#3b82f6';
+    qrLi.style.color = '#fff';
+    qrLi.style.cursor = 'pointer';
+    qrLi.style.borderRadius = '10px';
+    qrLi.style.padding = '1rem 1.4rem';
+    qrLi.style.marginTop = '0.5rem';
+    qrLi.onclick = showQrScan;
+    ul.appendChild(qrLi);
+  }
+
+  function renderStudentAnnouncementsList() {
+    const ul = document.getElementById('studentAnnouncementsList');
+    ul.innerHTML = '';
+    let announcements = JSON.parse(localStorage.getItem('announcements') || '[]');
+    if (announcements.length === 0) {
+      ul.innerHTML = '<li>No announcements yet.</li>';
+      return;
+    }
+    announcements.forEach(a => {
+      const li = document.createElement('li');
+      li.textContent = a;
+      ul.appendChild(li);
+    });
   }
 
   function renderTimetable() {
@@ -487,6 +553,98 @@
       tbody.appendChild(tr);
     });
   }
+
+  function showQrScan() {
+  // Hide all sections except QR scan
+  document.querySelectorAll('section').forEach(s => s.style.display = 'none');
+  document.getElementById('qrScan').style.display = 'block';
+  document.getElementById('qrScanStatus').textContent = '';
+  // If a previous scan is running, stop it and clear
+  if (window.qrReaderInstance && window.qrReaderInstance._isScanning) {
+    window.qrReaderInstance.stop().catch(()=>{});
+    window.qrReaderInstance = null;
+  }
+  document.getElementById('qr-reader').innerHTML = '';
+// Removed stray closing brace
+  }
+  document.getElementById('startQrScanBtn')?.addEventListener('click', () => {
+    // Create new instance and store globally so we can stop it later
+    if (window.qrReaderInstance && window.qrReaderInstance._isScanning) {
+      window.qrReaderInstance.stop().catch(()=>{});
+      window.qrReaderInstance = null;
+    }
+    const qrReader = new Html5Qrcode("qr-reader");
+    window.qrReaderInstance = qrReader;
+    qrReader.start({ facingMode: "environment" }, {
+      fps: 10,
+      qrbox: 250
+    }, qrCodeMessage => {
+      try {
+        const data = JSON.parse(qrCodeMessage);
+        const now = Date.now();
+        if (now > data.expires) {
+          document.getElementById('qrScanStatus').textContent = 'QR code expired.';
+          qrReader.stop();
+          window.qrReaderInstance = null;
+          return;
+        }
+        // Mark attendance for this period and date
+        const records = JSON.parse(localStorage.getItem('attendanceRecords') || '{}');
+        if (!records[data.date]) records[data.date] = {};
+        records[data.date][currentStudent.username] = 'Present';
+        localStorage.setItem('attendanceRecords', JSON.stringify(records));
+        document.getElementById('qrScanStatus').textContent = 'Attendance marked Present!';
+        qrReader.stop();
+        window.qrReaderInstance = null;
+        renderAttendance();
+      } catch (e) {
+        document.getElementById('qrScanStatus').textContent = 'Invalid QR code.';
+        qrReader.stop();
+        window.qrReaderInstance = null;
+      }
+    }, errorMsg => {
+      // ignore scan errors
+    });
+  });
+
+  function showChangePassword() {
+    document.getElementById('changePassword').style.display = 'block';
+    document.getElementById('changePassStatus').textContent = '';
+    document.getElementById('oldPass').value = '';
+    document.getElementById('newPass').value = '';
+    document.getElementById('confirmPass').value = '';
+  }
+  document.getElementById('changePassBtn').addEventListener('click', () => {
+    const oldPass = document.getElementById('oldPass').value.trim();
+    const newPass = document.getElementById('newPass').value.trim();
+    const confirmPass = document.getElementById('confirmPass').value.trim();
+    if (!oldPass || !newPass || !confirmPass) {
+      document.getElementById('changePassStatus').textContent = 'Please fill all fields.';
+      return;
+    }
+    if (newPass !== confirmPass) {
+      document.getElementById('changePassStatus').textContent = 'New passwords do not match.';
+      return;
+    }
+    if (currentStudent.password !== oldPass) {
+      document.getElementById('changePassStatus').textContent = 'Current password is incorrect.';
+      return;
+    }
+    // Update password in localStorage
+    const students = JSON.parse(localStorage.getItem('students') || '[]');
+    const idx = students.findIndex(s => s.username === currentStudent.username);
+    if (idx !== -1) {
+      students[idx].password = newPass;
+      localStorage.setItem('students', JSON.stringify(students));
+      currentStudent.password = newPass;
+      document.getElementById('changePassStatus').textContent = 'Password changed successfully!';
+      setTimeout(() => {
+        document.getElementById('changePassword').style.display = 'none';
+      }, 1200);
+    } else {
+      document.getElementById('changePassStatus').textContent = 'Error updating password.';
+    }
+  });
 </script>
 
 </body>
